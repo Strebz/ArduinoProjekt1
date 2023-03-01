@@ -1,0 +1,253 @@
+// Include libraries
+#include <LiquidCrystal.h>
+#include <DHT.h>
+
+// Display
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+// Distance sensor
+int trigPin = 7;    // Trigger
+int echoPin = 6;    // Echo
+long duration, cm;
+bool started = false;
+
+// Temp + humidity sensor
+#define DHTPIN 8
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
+
+float hum;  //Stores humidity value
+float temp; //Stores temperature value
+
+// Motion sensor
+int motionPin = 13;
+
+// Button
+#define BUTTON_PIN 9
+int page = 0;
+bool buttonClear = false;
+int buttonState = 0;         // current state of the button
+int lastButtonState = 0;     // previous state of the button
+
+void clearLCDLine(int line){
+  for(int n = 0; n < 25; n++) {
+    lcd.setCursor(n,line);
+    lcd.print(" ");
+  }
+}
+
+void setup() {
+  // Display initial message
+  lcd.begin(16, 2);
+  lcd.print("Pitebor = huvva");
+  lcd.setCursor(0,1);
+  lcd.print("Press to confirm");
+
+  // Distance sensor
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  // Temp sensor
+  dht.begin();
+
+  //Button
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  // Motion sensor
+  pinMode(motionPin, INPUT);     // declare sensor as input
+}
+
+void loop() {
+  // Read buttonstate
+  buttonState = digitalRead(BUTTON_PIN);
+
+  if (buttonState != lastButtonState) {
+    if (buttonState == LOW) {
+      page++;
+      started = false;
+    }
+  }
+  lastButtonState = buttonState;
+
+ if (page == 2) {
+    // Trigger distance sensor
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(5);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    duration = pulseIn(echoPin, HIGH);
+
+    // Convert to distance
+    cm = (duration/2) / 29.1; // Convert time to cm
+
+    if (started == false) {
+      lcd.clear();
+      lcd.setCursor(0,0);
+          lcd.print("Distance sensor: ");
+      started = true;
+    }
+    
+    // Clear empty spots
+    if (cm < 100) {
+      lcd.setCursor(12, 1);
+      lcd.print(" ");
+      if (cm < 10) {
+        lcd.setCursor(11, 1);
+        lcd.print("  ");
+      } 
+    } 
+
+// Print info    
+    lcd.setCursor(0, 1);
+    lcd.print(cm);
+    lcd.print("cm");
+  }
+
+  if (page == 4) {
+   
+    if (started == false) {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Temperature:");
+      started = true;
+    }
+
+  // Trigger temp sensor (DHT22)
+  temp= dht.readTemperature();
+
+// Print info
+  lcd.setCursor(0,1);
+  lcd.print(temp);
+  lcd.print("C  ");
+
+  }
+
+  if (page == 6) {
+   
+    if (started == false) {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Humidity:");
+      started = true;
+    }
+
+  // Trigger hum sensor (DHT22)
+  hum = dht.readHumidity();
+
+  // Print info
+  lcd.setCursor(0,1);
+  lcd.print(hum);
+  lcd.print("%   ");
+    }
+
+if (page == 8) {
+
+    if (started == false) {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Motion status:");
+      started = true;
+    }
+    
+    if (digitalRead(motionPin) == HIGH) {
+      lcd.setCursor(0,1);
+      lcd.print("TRIPPED    ");
+    }
+
+      if (digitalRead(motionPin) == LOW) {
+      lcd.setCursor(0,1);
+      lcd.print("No motion");
+    }
+  }
+
+  if (page == 10) {
+
+    if (started == false) {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Beraknar Pitebos");
+      lcd.setCursor(0,1);
+      lcd.print("huvva niva");
+      delay(1500);
+      lcd.setCursor(0,0);
+      clearLCDLine(0);
+      lcd.print("Beraknar info");
+      clearLCDLine(1);
+      lcd.setCursor(0,1);
+      lcd.print("Please wait.");
+      delay(200);
+      clearLCDLine(1);
+      lcd.setCursor(0,1);
+      lcd.print("Please wait..");
+      delay(200);
+      clearLCDLine(1);
+      lcd.setCursor(0,1);
+      lcd.print("Please wait...");
+      delay(200);
+      clearLCDLine(1);
+      lcd.setCursor(0,1);
+      lcd.print("Please wait.");
+      delay(200);
+      clearLCDLine(1);
+      lcd.setCursor(0,1);
+      lcd.print("Please wait..");
+      delay(200);
+      clearLCDLine(1);
+      lcd.setCursor(0,1);
+      lcd.print("Please wait...");
+      delay(200);
+      clearLCDLine(0);
+      lcd.setCursor(0,0); 
+      lcd.print("Berakning klar.");
+      clearLCDLine(1);
+      lcd.setCursor(0,1);
+      lcd.setCursor(0,0);
+      lcd.print("Resultat:");
+      delay(200);
+      clearLCDLine(1);
+      lcd.setCursor(0,1);
+      lcd.print("100% huvva");
+      delay(3000);
+      clearLCDLine(1);
+      lcd.setCursor(0,1);
+      lcd.print("Och dum i huvva");
+      delay(2000);
+      clearLCDLine(1);
+      lcd.setCursor(0,1);
+      lcd.print("Menade huvva");
+      started = true;
+    }
+  }
+
+if (page == 12) {
+   
+    if (started == false) {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("PITEBOR AR");
+      started = true;
+    }
+
+  lcd.setCursor(0,1);
+  lcd.print("FRAN PITE");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Pitebor borde");
+  lcd.setCursor(0,1);
+  lcd.print("Hemligt");
+  delay(1000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Returning.");
+  lcd.setCursor(0,1);
+  lcd.print("Please wait.");
+  delay(1000);
+  started = false;
+  page = 2;
+
+  }
+
+}
